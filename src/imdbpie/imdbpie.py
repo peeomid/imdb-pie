@@ -27,7 +27,7 @@ class Imdb(object):
 
     def __init__(self, api_key=None, locale=None, anonymize=False,
                  exclude_episodes=False, user_agent=None, cache=None,
-                 proxy_uri=None, verify_ssl=True, tolerate_redirect):
+                 proxy_uri=None, verify_ssl=True, tolerate_redirect=False):
         self.api_key = api_key or SHA1_KEY
         self.timestamp = time.mktime(datetime.date.today().timetuple())
         self.user_agent = user_agent or random.choice(USER_AGENTS)
