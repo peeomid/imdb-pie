@@ -27,7 +27,7 @@ class Imdb(object):
 
     def __init__(self, api_key=None, locale=None, anonymize=False,
                  exclude_episodes=False, user_agent=None, cache=None,
-                 proxy_uri=None, verify_ssl=True):
+                 proxy_uri=None, verify_ssl=True, tolerate_redirect):
         self.api_key = api_key or SHA1_KEY
         self.timestamp = time.mktime(datetime.date.today().timetuple())
         self.user_agent = user_agent or random.choice(USER_AGENTS)
@@ -38,6 +38,7 @@ class Imdb(object):
         self.anonymize = anonymize
         self.verify_ssl = verify_ssl
         self.session = requests
+        self.tolerate_redirect = tolerate_redirect
 
         if self.caching_enabled:
             warnings.warn('caching will be removed in version 5.0.0 '
@@ -50,7 +51,7 @@ class Imdb(object):
         url = self._build_url('/name/maindetails', {'nconst': imdb_id})
         response = self._get(url)
 
-        if response is None or self._is_redirection_result(response):
+        if response is None or (not self.tolerate_redirect and self._is_redirection_result(response)):
             return None
 
         person = Person(response["data"])
@@ -60,7 +61,7 @@ class Imdb(object):
         url = self._build_url('/title/maindetails', {'tconst': imdb_id})
         response = self._get(url)
 
-        if response is None or self._is_redirection_result(response):
+        if response is None or (not self.tolerate_redirect and self._is_redirection_result(response)):
             return None
 
         # get the full cast information, add key if not present
@@ -98,7 +99,9 @@ class Imdb(object):
             return True
         elif response.status_code == httplib.NOT_FOUND:
             return False
-        elif response.status_code == httplib.MOVED_PERMANENTLY:
+        elif self.tolerate_redirect and response.status_code == httplib.MOVED_PERMANENTLY:
+            return True
+        elif not self.tolerate_redirect and response.status_code == httplib.MOVED_PERMANENTLY:
             # redirection result
             return False
         else:
