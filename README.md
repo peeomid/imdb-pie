@@ -3,6 +3,14 @@
 
 Python IMDB client using the IMDB json web service made available for their iOS app.
 
+## This fork
+Originally imdbpie doesn't return title details if it's a redirect, which is a weird decision to me. So this fork adds an option to constructor to allow returning title details even in case of redirect when searching for title.
+
+To use it
+```python
+imdb = Imdb(tolerate_redirect=True)
+```
+
 ## Installation
 
 To install imdbpie, simply:
